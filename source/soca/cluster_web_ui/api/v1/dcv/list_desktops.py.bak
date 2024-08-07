@@ -171,10 +171,11 @@ class ListDesktops(Resource):
                 session_name = session_info.session_name
                 session_host_private_dns = session_info.session_host_private_dns
                 session_token = session_info.session_token
-                # session_local_admin_password = (session_info.session_local_admin_password if args["os"] == "windows" else None)
-                sd_password = base64.b64encode(session_info.session_id[11:23].encode("utf-8")).decode("utf-8")
-                session_local_admin_password = session_info.session_local_admin_password if args["os"] == "windows" else sd_password
-
+                session_local_admin_password = (
+                    session_info.session_local_admin_password
+                    if args["os"] == "windows"
+                    else None
+                )
                 if args["os"].lower() != "windows":
                     session_linux_distribution = session_info.session_linux_distribution
                 session_instance_type = session_info.session_instance_type
@@ -318,8 +319,7 @@ class ListDesktops(Resource):
                         db.session.commit()
 
                 user_sessions[session_number] = {
-                    "url": f"https://{read_secretmanager.get_soca_configuration()['LoadBalancerDNSName']}/sd-{session_host_private_dns}/",
-                    # "url": f"https://{read_secretmanager.get_soca_configuration()['LoadBalancerDNSName']}/{session_host_private_dns}/",
+                    "url": f"https://{read_secretmanager.get_soca_configuration()['LoadBalancerDNSName']}/{session_host_private_dns}/",
                     "session_local_admin_password": session_local_admin_password,
                     "session_state": session_state,
                     "session_authentication_token": dcv_authentication_token,

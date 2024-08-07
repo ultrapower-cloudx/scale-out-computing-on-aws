@@ -113,41 +113,6 @@ def create_new_target_group(instance_dns: str, vpc_id: str, instance_id: str, cl
     else:
         return False
 
-def create_new_target_group_forsd(instance_dns, vpc_id, instance_id,cluster_id):
-    print('Creating new target group for ' + instance_dns)
-    new_target_group = elbv2_client.create_target_group(
-        Name='soca-sd-'+instance_dns,
-        Protocol='HTTP',
-        Port=80,
-        VpcId=vpc_id,
-        HealthCheckProtocol='HTTP',
-        HealthCheckPort='80',
-        HealthCheckEnabled=True,
-        HealthCheckPath='/' + instance_dns + '/',
-        HealthCheckIntervalSeconds=30,
-        HealthCheckTimeoutSeconds=5,
-        HealthyThresholdCount=2,
-        UnhealthyThresholdCount=2,
-        Matcher={
-            'HttpCode': '200'
-        },
-        TargetType='instance'
-    )
-    if new_target_group['ResponseMetadata']['HTTPStatusCode'] == 200:
-        elbv2_client.add_tags(
-            ResourceArns=[
-                new_target_group['TargetGroups'][0]['TargetGroupArn'],
-            ],
-            Tags=[
-                {
-                    'Key': 'soca:ClusterId',
-                    'Value': cluster_id
-                },
-            ]
-        )
-        return new_target_group['TargetGroups'][0]['TargetGroupArn']
-    else:
-        return False
 
 def create_new_alb_rule(
     instance_dns: str, target_group_arn: str, current_priority_rules, listener_arn: str
@@ -187,33 +152,6 @@ def create_new_alb_rule(
 
     print(new_target_group)
 
-def create_new_alb_rule_forsd(instance_dns, target_group_arn, current_priority_rules, listener_arn):
-    min_priority = 1
-    max_priority = 100  # adjust this value if your AWS account allow more than 100 rules per alb
-    priority = random.randint(min_priority, max_priority)
-    print('Checking if priority ' + str(priority) + ' is available')
-    #print("List of rules already taken" + str(current_priority_rules))
-    while priority in current_priority_rules:
-        priority = random.randint(min_priority, max_priority)
-    print("Available priority for this rule: " + str(priority))
-    new_target_group = elbv2_client.create_rule(ListenerArn=listener_arn,
-                                                Priority=int(priority),
-                                                Conditions=[
-                                                    {
-                                                        'Field': 'path-pattern',
-                                                        'Values': [
-                                                            '/sd-' + instance_dns + '/*',
-                                                            '//sd-' + instance_dns + '/*'
-                                                        ]
-                                                    }],
-                                                Actions=[
-                                                    {
-                                                        'Type': 'forward',
-                                                        'TargetGroupArn': target_group_arn
-                                                    }]
-                                                )
-
-    print(new_target_group)
 
 def get_current_listener_rules(listener_arn: str):
     rules = {}
@@ -310,13 +248,9 @@ if __name__ == "__main__":
                         new_tg, instance_data["instance_id"]
                     )
                     if new_registration is not False:
-                        create_new_alb_rule(instance_dns, new_tg, alb_priority_taken, listener_arn)
-
-                new_sd_tg = create_new_target_group_forsd(instance_dns, vpc_id, instance_data['instance_id'],cluster_id)
-                if new_sd_tg is not False:
-                    new_registration = register_instance_to_target_group(new_sd_tg, instance_data['instance_id'])
-                    if new_registration is not False:
-                        create_new_alb_rule_forsd(instance_dns, new_sd_tg, alb_priority_taken, listener_arn)
+                        create_new_alb_rule(
+                            instance_dns, new_tg, alb_priority_taken, listener_arn
+                        )
 
             else:
                 print("Target Group already exist")
@@ -335,12 +269,7 @@ if __name__ == "__main__":
     print("Cleaning old rules start ...")
     for current_rule in alb_rules_dns:
         # transform /ip-180-0-172-39/* in ip-180-0-172-39
-        print(f"current_rule={current_rule}")
         instance_dns = current_rule.replace("/", "").replace("*", "")
-        if instance_dns.startswith('sd-'):
-            instance_dns = instance_dns[3:]
-        print(f"instance_dns={instance_dns}")
-        print(dcv_instances.keys())
         if instance_dns not in dcv_instances.keys():
             print(
                 current_rule

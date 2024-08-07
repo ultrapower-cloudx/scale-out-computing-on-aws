@@ -375,14 +375,12 @@
 
                                           {% elif session_data.session_state == 'running' %}
                                               <h6>Option1: Browser access</h6>
-{#                                              <a target="_blank" rel="noopener,noreferrer" href="{{ session_data.url }}?authToken={{ session_data.session_authentication_token }}#{{ session_data.session_id }}" class="btn btn-success btn-icon-split">#}
-                                              <a target="_blank" href="{{ session_data.url }}" class="btn btn-success btn-icon-split">
+                                              <a target="_blank" rel="noopener,noreferrer" href="{{ session_data.url }}?authToken={{ session_data.session_authentication_token }}#{{ session_data.session_id }}" class="btn btn-success btn-icon-split">
                                                   <span class="icon text-white-50">
                                                       <i class="fas fa-check"></i>
                                                   </span>
                                                   <span class="text">Open Session directly on a browser</span>
                                               </a>
-                                              <hr> Stable Diffusion WebUI Password: {{ session_data.session_local_admin_password }}
                                               <br><br>
                                               <h6>Option2: Use Native Application (best performance)</h6>
                                               <div class="alert alert-primary" role="alert">

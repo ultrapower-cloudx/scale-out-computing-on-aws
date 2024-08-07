@@ -29,7 +29,6 @@ import random
 from botocore.exceptions import ClientError
 from models import db, LinuxDCVSessions, WindowsDCVSessions, AmiList
 import dcv_cloudformation_builder
-import base64
 
 logger = logging.getLogger("api")
 client_ec2 = boto3.client("ec2", config=config.boto_extra_config())
@@ -37,7 +36,11 @@ client_cfn = boto3.client("cloudformation", config=config.boto_extra_config())
 
 
 def validate_ec2_image(image_id):
-    image_exist = AmiList.query.filter(AmiList.is_active == True, AmiList.ami_id == image_id).filter(AmiList.ami_type != "windows").first()
+    image_exist = (
+        AmiList.query.filter(AmiList.is_active == True, AmiList.ami_id == image_id)
+        .filter(AmiList.ami_type != "windows")
+        .first()
+    )
     if image_exist:
         return True
     else:
@@ -398,8 +401,7 @@ class CreateLinuxDesktop(Resource):
                 + '''"" >> /etc/environment
             echo export "SOCA_JOB_PROJECT="dcv"" >> /etc/environment
             echo export "SOCA_JOB_QUEUE="dcv"" >> /etc/environment
-            echo export "SOCA_SD_PASSWORD="''' + base64.b64encode(session_uuid[11:23].encode("utf-8")).decode("utf-8") + '''"" >> /etc/environment
-
+    
     
             source /etc/environment
             AWS=$(which aws)
