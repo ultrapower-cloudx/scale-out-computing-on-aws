@@ -1,5 +1,5 @@
 Config:
-  version: "2.7.5" # version automatically populated as part of RELEASE-PIPELINE.sh (see github_release.py)
+  version: "2.7.5.1" # version automatically populated as part of RELEASE-PIPELINE.sh (see github_release.py)
   termination_protection: True # Enable (recommended) or Disable Cloudformation Stack termination protection
   entry_points_subnets: "Public" # Public (recommended) or Private. In public mode the scheduler and ELB are deployed on PublicSubnets and assigned Public IPS. In Private mode scheduler and ELB are deployed in private subnets. In both case compute nodes and ElasticSearch/EFS/FSxL are deployed in private subnets. Public does not means your cluster will be accessible to everyone by default, access to your cluster is still protected by security groups
   skip_quotas: False # Enable (True) or Disable (False) AWS Service quotas check. It's recommended to disable this setting only when the AWS Service Quotas API is not accessible (e.g: isolated subnets)
@@ -81,7 +81,7 @@ Config:
   analytics:
     engine: opensearch # elasticsearch or opensearch. Note: MetricBeat is not supported on OpenSearch.
     data_node_instance_type: "m6g.large.search" # instance type for analytics data nodes
-    data_nodes: 2  # number of data nodes for analytics
+    data_nodes: 1  # number of data nodes for analytics
     ebs_volume_size: 100  # EBS volume size attached to data nodes in GB
     deletion_policy: "NO_RETAIN"  # RETAIN will preserve the ES even if you delete the stack. Any other value will delete OS if you delete the CFN stack
 

@@ -59,7 +59,7 @@ def main(**launch_parameters):
         t = Template()
         t.set_version("2010-09-09")
         t.set_description(
-            "(SOCA) - Base template to deploy DCV nodes version 2.7.5"
+            "(SOCA) - Base template to deploy DCV nodes version 2.7.5.1"
         )
         allow_anonymous_data_collection = launch_parameters["DefaultMetricCollection"]
         # Launch Actual Capacity
