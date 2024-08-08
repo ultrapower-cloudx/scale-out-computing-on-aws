@@ -194,8 +194,9 @@ if [[ ! -d $NVM_DIR ]]; then
   source "$NVM_DIR/nvm.sh"  # This loads nvm
   # shellcheck disable=SC1090
   source "$NVM_DIR/bash_completion"
-  nvm install v18.19.0
-  npm install -g aws-cdk
+  nvm install v18.20.4
+  npm install -g aws-cdk@2.151.0
+  log_success "Install Node & NPM & CDK successful!"
 else
   source "$NVM_DIR/nvm.sh"  # This loads nvm
   source "$NVM_DIR/bash_completion"
