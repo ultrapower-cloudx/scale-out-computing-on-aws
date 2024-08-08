@@ -153,8 +153,8 @@ class SOCAInstall(Stack):
                 "rocky9"
             }:
                 if hasattr(
-                        install_props.RegionMap.__dict__[self._region].__dict__[_arch],
-                        _base_os_available,
+                    install_props.RegionMap.__dict__[self._region].__dict__[_arch],
+                    _base_os_available,
                 ):
                     _arch_ami = (
                         install_props.RegionMap.__dict__[self._region]
@@ -187,8 +187,8 @@ class SOCAInstall(Stack):
             self.create_vpc_endpoints()
         self.storage()  # Create Storage backend
         if (
-                install_props.Config.directoryservice.provider == "activedirectory"
-                and not user_specified_variables.directory_service_id
+            install_props.Config.directoryservice.provider == "activedirectory"
+            and not user_specified_variables.directory_service_id
         ):
             self.directoryservice()  # Create Directory Service
         self.analytics()  # Create Analytics domain
@@ -197,9 +197,9 @@ class SOCAInstall(Stack):
         self.secretsmanager()  # Store SOCA config on Secret Manager
 
         if (
-                install_props.Config.services.aws_backup
-                and isinstance(install_props.Config.services.aws_backup, bool)
-                and install_props.Config.services.aws_backup is True
+            install_props.Config.services.aws_backup
+            and isinstance(install_props.Config.services.aws_backup, bool)
+            and install_props.Config.services.aws_backup is True
         ):
             self.backups()  # Configure AWS Backup & Restore
         else:
@@ -310,7 +310,7 @@ class SOCAInstall(Stack):
                 self.soca_resources["nat_gateway_ips"].append(nat_eip_for_subnet)
 
         # Create the EIP that will be associated to the scheduler
-        if install_props.Config.entry_soca_points_subnets.lower() == "public":
+        if install_props.Config.entry_points_subnets.lower() == "public":
             self.soca_resources["scheduler_eip"] = ec2.CfnEIP(
                 self, "SchedulerEIP", instance_id=None
             )
@@ -482,7 +482,7 @@ class SOCAInstall(Stack):
             ec2.Port.tcp(8443),
             description="Allow ELB healthcheck to communicate with the UI",
         )
-        if install_props.Config.entry_soca_points_subnets.lower() == "public":
+        if install_props.Config.entry_points_subnets.lower() == "public":
             self.soca_resources["scheduler_sg"].add_ingress_rule(
                 ec2.Peer.ipv4(f"{self._scheduler_eip_value}/32"),
                 ec2.Port.tcp(443),
@@ -541,7 +541,7 @@ class SOCAInstall(Stack):
             filters = [{"Name": "vpc-id", "Values": [user_specified_variables.vpc_id]}]
             existing_security_groups = {}
             for page in ec2_client.get_paginator("describe_vpc_endpoints").paginate(
-                    Filters=filters
+                Filters=filters
             ):
                 for vpc_endpoint in page["VpcEndpoints"]:
                     service_name = vpc_endpoint["ServiceName"]
@@ -691,8 +691,8 @@ class SOCAInstall(Stack):
 
         # Create Role for EFS Throughput Lambda function only when deploying a new EFS for /apps
         if (
-                not user_specified_variables.fs_apps_provider
-                or user_specified_variables.fs_apps_provider == "efs"
+            not user_specified_variables.fs_apps_provider
+            or user_specified_variables.fs_apps_provider == "efs"
         ):
             self.soca_resources["fs_apps_lambda_role"] = iam.Role(
                 self,
@@ -855,7 +855,7 @@ class SOCAInstall(Stack):
                 }
 
             if (
-                    not user_specified_variables.compute_node_role_from_previous_soca_deployment
+                not user_specified_variables.compute_node_role_from_previous_soca_deployment
             ):
                 policy_templates["ComputeNodePolicy"] = {
                     "template": "../policies/ComputeNode.json",
@@ -863,7 +863,7 @@ class SOCAInstall(Stack):
                 }
 
             if (
-                    not user_specified_variables.spotfleet_role_from_previous_soca_deployment
+                not user_specified_variables.spotfleet_role_from_previous_soca_deployment
             ):
                 policy_templates["SpotFleetPolicy"] = {
                     "template": "../policies/SpotFleet.json",
@@ -1001,8 +1001,8 @@ class SOCAInstall(Stack):
         """
 
         if (
-                install_props.Config.storage.apps.provider == "efs"
-                and not user_specified_variables.fs_apps
+            install_props.Config.storage.apps.provider == "efs"
+            and not user_specified_variables.fs_apps
         ):
             self.soca_resources["fs_apps"] = efs.CfnFileSystem(
                 self,
@@ -1024,16 +1024,16 @@ class SOCAInstall(Stack):
             )
 
             if (
-                    install_props.Config.storage.apps.efs.deletion_policy.upper()
-                    == "RETAIN"
+                install_props.Config.storage.apps.efs.deletion_policy.upper()
+                == "RETAIN"
             ):
                 self.soca_resources[
                     "fs_apps"
                 ].cfn_options.deletion_policy = CfnDeletionPolicy.RETAIN
 
         if (
-                install_props.Config.storage.data.provider == "efs"
-                and not user_specified_variables.fs_data
+            install_props.Config.storage.data.provider == "efs"
+            and not user_specified_variables.fs_data
         ):
             self.soca_resources["fs_data"] = efs.CfnFileSystem(
                 self,
@@ -1059,8 +1059,8 @@ class SOCAInstall(Stack):
                 performance_mode=install_props.Config.storage.data.efs.performance_mode,
             )
             if (
-                    install_props.Config.storage.data.efs.deletion_policy.upper()
-                    == "RETAIN"
+                install_props.Config.storage.data.efs.deletion_policy.upper()
+                == "RETAIN"
             ):
                 self.soca_resources[
                     "fs_data"
@@ -1074,8 +1074,8 @@ class SOCAInstall(Stack):
             private_subnet_ids.append(sub)
 
         if (
-                install_props.Config.storage.data.provider == "efs"
-                and not user_specified_variables.fs_data
+            install_props.Config.storage.data.provider == "efs"
+            and not user_specified_variables.fs_data
         ):
             for i in range(len(private_subnet_ids)):
                 efs.CfnMountTarget(
@@ -1091,8 +1091,8 @@ class SOCAInstall(Stack):
 
         # Create the mount targets for /apps
         if (
-                install_props.Config.storage.apps.provider == "efs"
-                and not user_specified_variables.fs_apps
+            install_props.Config.storage.apps.provider == "efs"
+            and not user_specified_variables.fs_apps
         ):
             for i in range(len(private_subnet_ids)):
                 efs.CfnMountTarget(
@@ -1197,8 +1197,8 @@ class SOCAInstall(Stack):
             )
 
         if (
-                install_props.Config.storage.data.provider == "fsx_lustre"
-                and not user_specified_variables.fs_data
+            install_props.Config.storage.data.provider == "fsx_lustre"
+            and not user_specified_variables.fs_data
         ):
             if install_props.Config.storage.data.fsx_lustre.storage_type == "SSD":
                 if install_props.Config.storage.data.fsx_lustre.deployment_type in {
@@ -1241,15 +1241,15 @@ class SOCAInstall(Stack):
                 kms_key_id=None
                 if install_props.Config.storage.data.kms_key_id is False
                 else install_props.Config.storage.data.kms_key_id,
-                    )
+            )
 
             Tags.of(self.soca_resources["fs_data"]).add(
                 "Name", f"{user_specified_variables.cluster_id}-Data"
             )
 
         if (
-                install_props.Config.storage.apps.provider == "fsx_lustre"
-                and not user_specified_variables.fs_apps
+            install_props.Config.storage.apps.provider == "fsx_lustre"
+            and not user_specified_variables.fs_apps
         ):
             if install_props.Config.storage.apps.fsx_lustre.storage_type == "SSD":
                 if install_props.Config.storage.apps.fsx_lustre.deployment_type in {
@@ -1292,7 +1292,7 @@ class SOCAInstall(Stack):
                 kms_key_id=None
                 if install_props.Config.storage.apps.kms_key_id is False
                 else install_props.Config.storage.apps.kms_key_id,
-                    )
+            )
 
             Tags.of(self.soca_resources["fs_apps"]).add(
                 "Name", f"{user_specified_variables.cluster_id}-Apps"
@@ -1372,7 +1372,7 @@ class SOCAInstall(Stack):
 
         # Choose subnet where to deploy the scheduler
         if not user_specified_variables.vpc_id:
-            if install_props.Config.entry_soca_points_subnets.lower() == "public":
+            if install_props.Config.entry_points_subnets.lower() == "public":
                 vpc_subnets = ec2.SubnetSelection(
                     subnets=[self.soca_resources["vpc"].public_subnets[0]]
                 )
@@ -1381,7 +1381,7 @@ class SOCAInstall(Stack):
                     subnets=[self.soca_resources["vpc"].private_subnets[0]]
                 )
         else:
-            if install_props.Config.entry_soca_points_subnets.lower() == "public":
+            if install_props.Config.entry_points_subnets.lower() == "public":
                 subnet_info = user_specified_variables.public_subnets[0].split(",")
             else:
                 subnet_info = user_specified_variables.private_subnets[0].split(",")
@@ -1456,7 +1456,7 @@ class SOCAInstall(Stack):
             "centos" if user_specified_variables.base_os == "centos7" else "ec2-user"
         )
 
-        if install_props.Config.entry_soca_points_subnets.lower() == "public":
+        if install_props.Config.entry_points_subnets.lower() == "public":
             # Associate the EIP to the scheduler instance
             #
             # Partition differences in CloudFormation support
@@ -1589,7 +1589,7 @@ class SOCAInstall(Stack):
             "BaseOS": user_specified_variables.base_os,
             "S3InstallFolder": user_specified_variables.cluster_id,
             "SchedulerIP": self._scheduler_eip_value
-            if install_props.Config.entry_soca_points_subnets.lower() == "public"
+            if install_props.Config.entry_points_subnets.lower() == "public"
             else self.soca_resources["scheduler_instance"].instance_private_ip,
             "SolutionMetricsLambda": solution_metrics_lambda.function_arn,
             "DefaultMetricCollection": "true",
@@ -1936,7 +1936,7 @@ class SOCAInstall(Stack):
             vpc=self.soca_resources["vpc"],
             drop_invalid_header_fields=True,
             internet_facing=True
-            if install_props.Config.entry_alb_points_subnets.lower() == "public"
+            if install_props.Config.entry_points_subnets.lower() == "public"
             else False,
         )
         # HTTP listener simply forward to HTTPS
