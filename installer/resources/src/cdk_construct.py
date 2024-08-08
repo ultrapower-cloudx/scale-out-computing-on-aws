@@ -191,6 +191,7 @@ class SOCAInstall(Stack):
                 and not user_specified_variables.directory_service_id
         ):
             self.directoryservice()  # Create Directory Service
+        # if install_props.Config.analytics.enable is True :
         self.analytics()  # Create Analytics domain
         self.scheduler()  # Configure the Scheduler
         self.viewer()  # Configure the DCV Load Balancer

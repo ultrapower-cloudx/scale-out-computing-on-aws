@@ -81,6 +81,7 @@ Config:
 
   # Configure your AWS OpenSearch
   analytics:
+    #enable: True
     engine: opensearch # elasticsearch or opensearch. Note: MetricBeat is not supported on OpenSearch.
     data_node_instance_type: "m6g.large.search" # instance type for analytics data nodes
     data_nodes: 1  # number of data nodes for analytics

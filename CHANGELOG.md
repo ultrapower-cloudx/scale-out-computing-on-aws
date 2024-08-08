@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Features
 - Support stable diffusion 
   - make password in page
-
+- Support opensearch switch
+  - analytics.enable == True can create opensearch
+  
 ## [2.7.5] - 2024-04-10
 
 ### Features
