@@ -110,8 +110,24 @@ Config:
       name: "soca.local" # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-name
       short_name: "SOCA" # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-shortname
       edition: "Standard" # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-edition
+  # Configure your AWS China Regions options below
+  china:
+    pip_china_mirror: "https://mirrors.aliyun.com/pypi/simple" # pip aliyun mirror site
+    centos_china_repo: "https://gitee.com/gongjing/soca-china/blob/master/CentOS-Base-china.repo" # centos China mirror repo file
 
 RegionMap:
+  cn-north-1: # Beijing
+    arm64:
+    x86_64:
+      amazonlinux2: ami-0c52e2685c7218558
+      centos7: ami-088b61f50b18f807e
+      rhel7: ami-0aec480c46b22c341
+  cn-northwest-1: # Ningxia
+    arm64:
+    x86_64:
+      amazonlinux2: ami-0b6ea802f7ef3bcdb
+      centos7: ami-0d8487330873f710c
+      rhel7: ami-05d1efb0d288aa5ed
   af-south-1:
     arm64:
       amazonlinux2: ami-0c024dd5da540e86e

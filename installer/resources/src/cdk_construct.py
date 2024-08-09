@@ -1358,6 +1358,8 @@ class SOCAInstall(Stack):
             "%%RESET_PASSWORD_DS_LAMBDA%%": "false"
             if not self.soca_resources["reset_ds_lambda"]
             else self.soca_resources["reset_ds_lambda"].function_arn,
+            "%%PIP_CHINA_MIRROR%%": install_props.Config.china.pip_china_mirror,
+            "%%CENTOS_CHINA_REPO%%": install_props.Config.china.centos_china_repo,
             "%%SOCA_AUTH_PROVIDER%%": install_props.Config.directoryservice.provider,
             "%%SOCA_LDAP_BASE%%": "false"
             if install_props.Config.directoryservice.provider == "activedirectory"
@@ -1452,10 +1454,10 @@ class SOCAInstall(Stack):
             self.soca_resources["scheduler_instance"].node.add_dependency(
                 self.soca_resources["fs_data"]
             )
-
-        ssh_user = (
-            "centos" if user_specified_variables.base_os == "centos7" else "ec2-user"
-        )
+        if user_specified_variables.china_region:
+            ssh_user = "ec2-user"
+        else:
+            ssh_user = "centos" if user_specified_variables.base_os == "centos7" else "ec2-user"
 
         if install_props.Config.entry_soca_points_subnets.lower() == "public":
             # Associate the EIP to the scheduler instance
@@ -1843,12 +1845,15 @@ class SOCAInstall(Stack):
             )
 
             if user_specified_variables.create_es_service_role:
-                service_linked_role = iam.CfnServiceLinkedRole(
-                    self,
-                    "ESServiceLinkedRole",
-                    aws_service_name=f"es.{Aws.URL_SUFFIX}",
-                    description="Role for ES to access resources in the VPC",
-                )
+                # service_linked_role = iam.CfnServiceLinkedRole(
+                #     self,
+                #     "ESServiceLinkedRole",
+                #     aws_service_name=f"es.{Aws.URL_SUFFIX}",
+                #     description="Role for ES to access resources in the VPC",
+                # )
+                service_linked_role = iam.CfnServiceLinkedRole(self, "ESServiceLinkedRole",
+                                                               aws_service_name=f"es.{Aws.URL_SUFFIX if user_specified_variables.china_region is False else 'amazonaws.com'}",
+                                                               description="Role for ES to access resources in the VPC")
                 self.soca_resources["os_domain"].node.add_dependency(
                     service_linked_role
                 )
@@ -2128,6 +2133,7 @@ if __name__ == "__main__":
                 if app.node.try_get_context("create_es_service_role") == "False"
                 else True,
                 "vpc_azs": app.node.try_get_context("vpc_azs"),
+                "china_region": True if app.node.try_get_context("region") in ['cn-north-1', 'cn-northwest-1'] else False,
                 "vpc_id": app.node.try_get_context("vpc_id"),
                 "public_subnets": app.node.try_get_context("public_subnets")
                 if app.node.try_get_context("public_subnets") is None
@@ -2202,21 +2208,26 @@ if __name__ == "__main__":
     )
 
     # List of AWS endpoints & principals suffix
+    # endpoints_suffix = {
+    #     "fsx_lustre": f"fsx.{Aws.REGION}.{Aws.URL_SUFFIX}",
+    #     "fsx_openzfs": f"fsx.{Aws.REGION}.{Aws.URL_SUFFIX}",
+    #     "fsx_ontap": f"fsx.{Aws.REGION}.{Aws.URL_SUFFIX}",
+    #     "efs": f"efs.{Aws.REGION}.{Aws.URL_SUFFIX}",
+    # }
     endpoints_suffix = {
-        "fsx_lustre": f"fsx.{Aws.REGION}.{Aws.URL_SUFFIX}",
-        "fsx_openzfs": f"fsx.{Aws.REGION}.{Aws.URL_SUFFIX}",
-        "fsx_ontap": f"fsx.{Aws.REGION}.{Aws.URL_SUFFIX}",
-        "efs": f"efs.{Aws.REGION}.{Aws.URL_SUFFIX}",
+        "fsx_lustre": f"fsx.{Aws.REGION}.{Aws.URL_SUFFIX if user_specified_variables.china_region is False else 'amazonaws.com'}",
+        "fsx_openzfs": f"fsx.{Aws.REGION}.{Aws.URL_SUFFIX if user_specified_variables.china_region is False else 'amazonaws.com'}",
+        "fsx_ontap": f"fsx.{Aws.REGION}.{Aws.URL_SUFFIX if user_specified_variables.china_region is False else 'amazonaws.com'}",
+        "efs": f"efs.{Aws.REGION}.{Aws.URL_SUFFIX if user_specified_variables.china_region is False else 'amazonaws.com'}",
     }
-
     principals_suffix = {
-        "backup": f"backup.{Aws.URL_SUFFIX}",
-        "cloudwatch": f"cloudwatch.{Aws.URL_SUFFIX}",
+        "backup": f"backup.{Aws.URL_SUFFIX if user_specified_variables.china_region is False else 'amazonaws.com'}",
+        "cloudwatch": f"cloudwatch.{Aws.URL_SUFFIX if user_specified_variables.china_region is False else 'amazonaws.com'}",
         "ec2": f"ec2.{Aws.URL_SUFFIX}",
-        "lambda": f"lambda.{Aws.URL_SUFFIX}",
-        "sns": f"sns.{Aws.URL_SUFFIX}",
-        "spotfleet": f"spotfleet.{Aws.URL_SUFFIX}",
-        "ssm": f"ssm.{Aws.URL_SUFFIX}",
+        "lambda": f"lambda.{Aws.URL_SUFFIX  if user_specified_variables.china_region is False else 'amazonaws.com'}",
+        "sns": f"sns.{Aws.URL_SUFFIX  if user_specified_variables.china_region is False else 'amazonaws.com'}",
+        "spotfleet": f"spotfleet.{Aws.URL_SUFFIX  if user_specified_variables.china_region is False else 'amazonaws.com'}",
+        "ssm": f"ssm.{Aws.URL_SUFFIX  if user_specified_variables.china_region is False else 'amazonaws.com'}",
     }
 
     # Apply default tag to all taggable resources

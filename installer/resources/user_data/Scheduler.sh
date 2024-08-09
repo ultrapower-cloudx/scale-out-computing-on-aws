@@ -14,6 +14,9 @@ SOCA_AUTH_PROVIDER="%%SOCA_AUTH_PROVIDER%%"
 SOCA_LDAP_BASE="%%SOCA_LDAP_BASE%%"
 RESET_PASSWORD_DS_LAMBDA="%%RESET_PASSWORD_DS_LAMBDA%%"
 
+PIP_CHINA_MIRROR="%%PIP_CHINA_MIRROR%%"
+CENTOS_CHINA_REPO="%%CENTOS_CHINA_REPO%%"
+
 function auto_install {
   # Now perform the installs on the potentially updated package lists
   MAX_INSTALL_ATTEMPTS=10
@@ -81,7 +84,6 @@ function instance_region () {
   echo -n "${INSTANCE_REGION}"
 }
 
-
 # Deactivate shell to make sure users won't access the cluster if it's not ready
 echo "
 ************* SOCA FIRST TIME CONFIGURATION *************
@@ -98,8 +100,25 @@ if [[ "%%BASE_OS%%" == "centos7" ]] || [[ "%%BASE_OS%%" == "centos8" ]]; then
     usermod --shell /usr/sbin/nologin centos
 fi
 
+AWS_REGION=$(instance_region)
+AWS_INSTANCE_ID=$(instance_id)
+
 # Install awscli
-if [[ "$SOCA_BASE_OS" == "centos7" ]] || [[ "$SOCA_BASE_OS" == "rhel7" ]] || [[ "$SOCA_BASE_OS" == "rhel8" ]] || [[ "$SOCA_BASE_OS" == "rhel9" ]]; then
+if [[ "$SOCA_BASE_OS" == "centos7" ]]; then
+  if [[ "$AWS_REGION" == "cn-north-1" ]] || [[ "$AWS_REGION" == "cn-northwest-1" ]]; then
+    yum install -y python3-pip
+    PIP=$(which pip3)
+    $PIP install -i https://mirrors.aliyun.com/pypi/simple awscli
+    export PATH=$PATH:/usr/local/bin
+  else
+    yum install -y python3-pip
+    PIP=$(which pip3)
+    $PIP install -i https://mirrors.aliyun.com/pypi/simple awscli
+    export PATH=$PATH:/usr/local/bin
+  fi
+fi
+
+if [[ "$SOCA_BASE_OS" == "rhel7" ]] || [[ "$SOCA_BASE_OS" == "rhel8" ]] || [[ "$SOCA_BASE_OS" == "rhel9" ]]; then
   yum install -y python3-pip
   PIP=$(which pip3)
   $PIP install awscli
@@ -136,8 +155,6 @@ source /etc/environment
 AWS=$(command -v aws)
 
 # Tag EBS disks manually as CFN  does not support it
-AWS_REGION=$(instance_region)
-AWS_INSTANCE_ID=$(instance_id)
 #
 # Probe the bucket and make sure S3 commands use the correct endpoint
 #

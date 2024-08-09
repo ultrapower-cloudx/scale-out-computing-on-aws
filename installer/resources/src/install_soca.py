@@ -1368,7 +1368,7 @@ if __name__ == "__main__":
         [red]Scale-[bright_blue]Out [magenta]Computing on [yellow]AWS[default]
     ================================
     > Documentation: https://awslabs.github.io/scale-out-computing-on-aws/
-    > Source Code: https://github.com/awslabs/scale-out-computing-on-aws/
+    > Source Code: https://github.com/ultrapower-cloudx/scale-out-computing-on-aws/
     """
 
     print(splash_info)
@@ -1511,6 +1511,7 @@ if __name__ == "__main__":
         expected_answers=accepted_regions_dict,
         expected_type=str,
     )
+    china_region = True if install_parameters["region"] in ['cn-north-1', 'cn-northwest-1'] else False
 
     # Initiate boto3 clients now the region is known
     # TODO - there are better ways to do this
@@ -1638,6 +1639,9 @@ if __name__ == "__main__":
     if args.profile:
         cmd += f" --profile {args.profile}"
         cmd_bootstrap += f" --profile {args.profile}"
+
+    if china_region:
+        cmd += f" --app '{install_directory}/soca_regions.sh {install_directory}/cdk.out/{install_parameters['cluster_id']}.template.json'"
 
     # Adding --debug flag will output the cdk deploy command. This is helpful for troubleshooting.
     # Be careful as --ldap-password will be shown in plain text

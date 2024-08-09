@@ -48,11 +48,11 @@ crontab -r
 # AWS_DEFAULT_REGION should come from our config
 # We probe the S3 endpoint to get the bucket-region header
 # which contains the underlying S3 region for the bucket
-# Each partition is unique however and we must be partition-aware
+# Each partition is unique however and we must be partition-aware amazonaws.com.cn
 if [[ ${AWS_DEFAULT_REGION} =~ ^us-gov-[a-z]+-[0-9]+$ ]]; then
   S3_BUCKET_REGION=$(curl -s --head "${SOCA_INSTALL_BUCKET}".s3.us-gov-west-1.amazonaws.com | grep bucket-region | awk '{print $2}' | tr -d '\r\n')
 else
-  S3_BUCKET_REGION=$(curl -s --head "${SOCA_INSTALL_BUCKET}".s3.amazonaws.com | grep bucket-region | awk '{print $2}' | tr -d '\r\n')
+  S3_BUCKET_REGION=$(curl -s --head "${SOCA_INSTALL_BUCKET}".s3.amazonaws.com.cn | grep bucket-region | awk '{print $2}' | tr -d '\r\n')
 fi
 # Retrieve SOCA configuration under soca.tar.gz and extract it on /apps/
 $AWS --region "${S3_BUCKET_REGION}" s3 cp s3://"$SOCA_INSTALL_BUCKET"/"$SOCA_INSTALL_BUCKET_FOLDER"/soca.tar.gz /root
@@ -61,6 +61,14 @@ tar -xvf /root/soca.tar.gz -C /apps/soca/"$SOCA_CONFIGURATION" --no-same-owner
 cp /root/config.cfg /apps/soca/"$SOCA_CONFIGURATION"/cluster_node_bootstrap/config.cfg
 mkdir -p /apps/soca/"$SOCA_CONFIGURATION"/cluster_manager/logs
 chmod +x /apps/soca/"$SOCA_CONFIGURATION"/cluster_manager/socaqstat.py
+
+# Download static pricing list for China regions
+wget https://pricing.cn-north-1.amazonaws.com.cn/offers/v1.0/cn/AmazonEC2/current/index.json -O /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/pricing_index.json
+cat <<EOT >> /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/download_china_pricing_index.sh
+#!/bin/bash
+wget https://pricing.cn-north-1.amazonaws.com.cn/offers/v1.0/cn/AmazonEC2/current/index.json -O /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/pricing_index.json
+EOT
+chmod +x /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/download_china_pricing_index.sh
 
 # Generate default queue_mapping file based on default AMI chosen by customer
 cat <<EOT >> /apps/soca/$SOCA_CONFIGURATION/cluster_manager/settings/queue_mapping.yml
@@ -195,6 +203,7 @@ echo "
 * * * * * source /etc/environment; /apps/soca/$SOCA_CONFIGURATION/python/latest/bin/python3 /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/cluster_nodes_tracking.py >> /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/cluster_nodes_tracking.log 2>&1
 @hourly source /etc/environment; /apps/soca/$SOCA_CONFIGURATION/python/latest/bin/python3 /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/job_tracking.py >> /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/job_tracking.log 2>&1
 */10 * * * * source /etc/environment; /apps/soca/$SOCA_CONFIGURATION/python/latest/bin/python3 /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/desktop_hosts_tracking.py >> /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/desktop_hosts_tracking.log 2>&1
+@daily /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/download_china_pricing_index.sh > /apps/soca/$SOCA_CONFIGURATION/cluster_analytics/download_china_pricing_index.log 2>&1
 
 ## Cluster Log Management
 @daily  source /etc/environment; /bin/bash /apps/soca/$SOCA_CONFIGURATION/cluster_logs_management/send_logs_s3.sh >>/apps/soca/$SOCA_CONFIGURATION/cluster_logs_management/send_logs_s3.log 2>&1
