@@ -78,4 +78,3 @@ while [ $(date +%s) -lt $END_TIME ]; do
 done
 
 echo "Script finished after 10 minutes."
-
